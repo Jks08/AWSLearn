@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import boto3
 
 # Create an S3 client
@@ -9,3 +10,6 @@ response = s3.list_buckets()
 # Get a list of all bucket names from the response
 buckets = [bucket['Name'] for bucket in response['Buckets']]
 print("Bucket List: %s" % buckets)
+
+# Create a bucket
+# s3.create_bucket(Bucket='jksbuck')
