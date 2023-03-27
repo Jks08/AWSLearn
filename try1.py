@@ -13,3 +13,7 @@ print("Bucket List: %s" % buckets)
 
 # Create a bucket
 # s3.create_bucket(Bucket='jksbuck')
+
+# Create terraform configuration file
+with open('terraform.tf', 'w') as f:
+    f.write('provider "aws" { region = "us-east-1" }')
