@@ -1,2 +1,4 @@
 /env1
 .terraform
+.terraform.lock.hcl
+terraform.tfstate
