@@ -17,3 +17,8 @@ print("Bucket List: %s" % buckets)
 # Create terraform configuration file
 # with open('terraform.tf', 'w') as f:
 #     f.write('provider "aws" { region = "us-east-1" }')
+
+# List the tables in the DynamoDB
+dynamodb = boto3.resource('dynamodb')
+for table in dynamodb.tables.all():
+    print(table.name)
