@@ -1,12 +1,12 @@
 # provider "aws" { region = "us-east-1" }
 terraform {
-    backend "s3" {
-        bucket = "jksbuck1"
-        key    = "terraform.tfstate"
-        region = "us-east-1"
-        dynamodb_table = "terraform-state-locking"
-        encrypt = true
-    }
+  backend "s3" {
+    bucket         = "jksbuck1"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-state-locking"
+    encrypt        = true
+  }
 
   required_providers {
     aws = {
