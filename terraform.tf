@@ -56,3 +56,13 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
 }
+
+# resource "aws_instance" "empWebApp" {
+#   ami           = "ami-00c39f71452c08778"
+#   availability_zone = "us-east-1a"
+#   instance_type = "t2.micro"
+#   key_name = ""
+#   tags = {
+#     Name = "empWebApp"
+#   }
+# }
