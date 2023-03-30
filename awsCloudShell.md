@@ -66,3 +66,56 @@ aws s3 cp s3://my-new-bucket/my-file.txt s3://my-new-bucket-2/my-file-2.txt --ac
 
 # 15. Copy a file from S3 bucket to another S3 bucket with a new name and make it public with a custom cache control and content type and metadata and encryption
 aws s3 cp s3://my-new-bucket/my-file.txt s3://my-new-bucket-2/my-file-2.txt --acl public-read --cache-control max-age=31536000 --content-type text/html --metadata '{"key1":"value1","key2":"value2"}' --sse
+
+"""
+Starting with EC2
+"""
+
+# 1. List all EC2 instances
+aws ec2 describe-instances
+
+# 2. List only names of EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`].Value[]]' --output text
+
+# 3. List only running EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`].Value[]]' --output text --filters Name=instance-state-name,Values=running
+
+# 4. List only stopped EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`].Value[]]' --output text --filters Name=instance-state-name,Values=stopped
+
+# 5. List only terminated EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`].Value[]]' --output text --filters Name=instance-state-name,Values=terminated
+
+# 6. Stop a specific EC2 instance
+aws ec2 stop-instances --instance-ids <instance_id/name>
+
+# 7. Start a specific EC2 instance
+aws ec2 start-instances --instance-ids <instance_id/name>
+
+# 8. Terminate a specific EC2 instance
+aws ec2 terminate-instances --instance-ids <instance_id/name>
+
+# 9. Create a new EC2 instance
+aws ec2 run-instances --image-id <image_id> --count 1 --instance-type t2.micro --key-name <key_name> --security-group-ids <security_group_id> --subnet-id <subnet_id>
+
+# 10. Create a new EC2 instance with a specific name
+aws ec2 run-instances --image-id <image_id> --count 1 --instance-type t2.micro --key-name <key_name> --security-group-ids <security_group_id> --subnet-id <subnet_id> --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=<instance_name>}]'
+
+# 11. Stop all EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --output text --filters Name=instance-state-name,Values=running | xargs -I {} aws ec2 stop-instances --instance-ids {}
+
+# 12. Start all EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --output text --filters Name=instance-state-name,Values=stopped | xargs -I {} aws ec2 start-instances --instance-ids {}
+
+# 13. Stop a specific EC2 instance
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --output text --filters Name=instance-state-name,Values=running | xargs -I {} aws ec2 stop-instances --instance-ids {}
+
+# 14. Terminate all EC2 instances
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --output text --filters Name=instance-state-name,Values=running | xargs -I {} aws ec2 terminate-instances --instance-ids {}
+
+# 15. Terminate a specific EC2 instance
+aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' --output text --filters Name=instance-state-name,Values=running | xargs -I {} aws ec2 terminate-instances --instance-ids {}
+
+# 16. SSH into a specific EC2 instance
+ssh -i <key_name>.pem ec2-user@<public_ip> 
+(if no key_name, use ec2-user@<public_ip>)
