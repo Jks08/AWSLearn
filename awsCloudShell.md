@@ -1,5 +1,4 @@
 # Here we note down AWS Cloud Shell commands to be executed
-
 """
 Starting with S3
 AVAILABLE COMMANDS
