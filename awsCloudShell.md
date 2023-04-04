@@ -118,3 +118,30 @@ aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId]' -
 # 16. SSH into a specific EC2 instance
 ssh -i <key_name>.pem ec2-user@<public_ip> 
 (if no key_name, use ec2-user@<public_ip>)
+
+"""
+Starting with IAM
+"""
+
+# 1. List all IAM users
+aws iam list-users
+
+# 2. List all IAM users with their access keys
+aws iam list-users --query 'Users[*].[UserName,AccessKeyIds]' --output text
+
+# 3. List all IAM users with their access keys and their groups
+aws iam list-users --query 'Users[*].[UserName,AccessKeyIds,Groups]' --output text
+
+# 4. Delete a specific IAM user
+a. aws iam delete-user --user-name <user_name> 
+b. aws iam delete-login-profile --user-name <user_name>
+
+# 5. Detach all policies from a specific IAM user
+aws iam list-user-policies --user-name <user_name> --query 'PolicyNames[*]' --output text | xargs -I {} aws iam detach-user-policy --user-name <user_name> --policy-arn arn:aws:iam::aws:policy/{}
+
+# 5. Create a new IAM user
+aws iam create-user --user-name <user_name>
+
+# 6. Create a new IAM user with a specific password
+aws iam create-user --user-name <user_name>
+aws iam create-login-profile --user-name <user_name> --password <password>
