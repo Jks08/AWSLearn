@@ -66,3 +66,20 @@ resource "aws_dynamodb_table" "terraform_locks" {
 #     Name = "empWebApp"
 #   }
 # }
+
+# Setup Billing Alarms
+
+resource "aws_cloudwatch_metric_alarm" "billing" {
+  alarm_name          = "BillingAlarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "EstimatedCharges"
+  namespace           = "AWS/Billing"
+  period              = "86400"
+  statistic           = "Maximum"
+  threshold           = "5"
+  alarm_description   = "This metric monitors the estimated charges for the account"
+  dimensions = {
+    Currency = "USD"
+  }
+}
