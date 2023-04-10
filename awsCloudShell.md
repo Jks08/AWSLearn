@@ -145,3 +145,6 @@ aws iam create-user --user-name <user_name>
 # 6. Create a new IAM user with a specific password
 aws iam create-user --user-name <user_name>
 aws iam create-login-profile --user-name <user_name> --password <password>
+
+# 7. Create a new IAM user with a specific password and add it to a specific group
+aws iam create-user --user-name <user_name>
