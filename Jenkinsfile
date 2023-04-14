@@ -1,26 +1,3 @@
-// pipeline{
-//     agent any
-//     stages{
-//         stage('Build'){
-//             steps{
-//                 echo 'Building...'
-//             }
-//         }
-
-//         stage ('Test'){
-//             steps{
-//                 echo 'Testing...'
-//             }
-//         }
-
-//         stage ('Deploy'){
-//             steps{
-//                 echo 'Deploying...'
-//             }
-//         }
-//     }
-// }
-
 pipeline{
     agent {label 'root-python-slave-1'}
     stages{
@@ -32,7 +9,7 @@ pipeline{
                 echo '$WORKSPACE'
             }
         }
-        stage ('Stage 2 : Creating Package'){
+        stage ('Stage 2 : Creating Requirements.txt'){
             steps{
                 script{
                     if (!fileExists('requirements.txt')){
