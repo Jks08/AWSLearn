@@ -20,5 +20,14 @@ def check_regex():
 def hello():
     print("Hello World")
 
+@click.command('AWS_S3_list')
+@with_appcontext
+def AWS_S3_list():
+    import boto3
+    s3 = boto3.resource('s3')
+    for bucket in s3.buckets.all():
+        print(bucket.name)
+
 app.cli.add_command(check_regex)
 app.cli.add_command(hello)
+app.cli.add_command(AWS_S3_list)
