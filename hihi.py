@@ -29,7 +29,7 @@ sns = boto3.client('sns')
 if DeadLetterQueueName == "":
     response = sqs.create_queue(
         QueueName=QueueName,
-        Tags={
+        tags={
         'LOB': LOB,
         'REF_ID': REF_ID,
         'Application Name': ApplicationName
@@ -38,7 +38,7 @@ if DeadLetterQueueName == "":
 else:
     response = sqs.create_queue(
         QueueName=QueueName,
-        Tags={
+        tags = {
         'LOB': LOB,
         'REF_ID': REF_ID,
         'Application Name': ApplicationName
