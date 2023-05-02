@@ -1,6 +1,5 @@
-#!/usr/bin/python3
-import sys
 import boto3
+import sys
 import json
 
 try:
@@ -18,14 +17,7 @@ except IndexError:
     sys.exit(1)
 
 sqs = boto3.client('sqs')
-sns = boto3.client('sns')
 
-# Now, we provision the SQS Queue and SNS Topic(if required) for the application using boto3
-# Some Rules:
-# 1. If SNSSubscriptionRequired is True, then we create a SNS Topic and subscribe the SQS Queue to it
-# 2. If SNSSubscriptionRequired is False, then we create a SQS Queue and do not create a SNS Topic
-# 3. If there is no value for DeadLetterQueueName, then we do not create a Dead Letter Queue and we do not include a RedrivePolicy in the SQS Queue
-# 4. If there is a value for DeadLetterQueueName, then we create a Dead Letter Queue and we include a RedrivePolicy in the SQS Queue
 
 try:
     if DeadLetterQueueName == "":
