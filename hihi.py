@@ -29,38 +29,20 @@ sns = boto3.client('sns')
 if DeadLetterQueueName == "":
     response = sqs.create_queue(
         QueueName=QueueName,
-        Tags=[
-            {
-                'Key': 'LOB',
-                'Value': LOB
-            },
-            {
-                'Key': 'REF_ID',
-                'Value': REF_ID
-            },
-            {
-                'Key': 'Application Name',
-                'Value': ApplicationName
-            }
-        ]
+        Tags={
+        'LOB': LOB,
+        'REF_ID': REF_ID,
+        'Application Name': ApplicationName
+        }
     )
 else:
     response = sqs.create_queue(
         QueueName=QueueName,
-        Tags=[
-            {
-                'Key': 'LOB',
-                'Value': LOB
-            },
-            {
-                'Key': 'REF_ID',
-                'Value': REF_ID
-            },
-            {
-                'Key': 'Application Name',
-                'Value': ApplicationName
-            }
-        ],
+        Tags={
+        'LOB': LOB,
+        'REF_ID': REF_ID,
+        'Application Name': ApplicationName
+        },
         Attributes={
             'RedrivePolicy': '{"deadLetterTargetArn":"Fn::GetAtt": ["' + DeadLetterQueueName + '","Arn"],"maxReceiveCount":"' + MaxReceiveCount + '"}'
         }
