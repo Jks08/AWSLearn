@@ -244,21 +244,7 @@ try:
     response = cloudformation.create_stack(
         StackName=stack_name,
         TemplateBody=json.dumps(template, indent=4),
-        OnFailure='ROLLBACK',
-        Tags=[
-            {
-                'Key': 'LOB',
-                'Value': LOB
-            },
-            {
-                'Key': 'REF_ID',
-                'Value': REF_ID
-            },
-            {
-                'Key': 'Application Name',
-                'Value': ApplicationName
-            }
-        ]
+        OnFailure='ROLLBACK'
     )
     print(f"Stack {stack_name} created successfully!")
 except Exception as e:
