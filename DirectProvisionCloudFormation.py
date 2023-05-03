@@ -207,4 +207,35 @@ if resources_sns_subscription != None:
 #     json.dump(template, outfile, indent=4)
 
 # Print the template to the console using rich
-rich.print(template)
+# rich.print(template)
+
+# Now we create the CloudFormation stack
+cloudformation = boto3.client('cloudformation')
+if QueueName != "":
+    stack_name = f"{QueueName}-stack"
+else:
+    stack_name = f"{SNSTopicName}-stack"
+try:
+    response = cloudformation.create_stack(
+        StackName=stack_name,
+        TemplateBody=json.dumps(template, indent=4),
+        OnFailure='ROLLBACK',
+        Tags=[
+            {
+                'Key': 'LOB',
+                'Value': LOB
+            },
+            {
+                'Key': 'REF_ID',
+                'Value': REF_ID
+            },
+            {
+                'Key': 'Application Name',
+                'Value': ApplicationName
+            }
+        ]
+    )
+    print(f"Stack {stack_name} created successfully!")
+except Exception as e:
+    print(e)
+    sys.exit(1)
