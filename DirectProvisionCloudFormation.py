@@ -2,6 +2,7 @@
 import sys
 import boto3
 import json
+import rich
 
 try:
     Environment = sys.argv[1]
@@ -74,7 +75,7 @@ if SNSTopicName != "":
 else:
     resources_sns_topic = None
 
-if SNSSubscriptionRequired == "true":
+if SNSSubscriptionRequired == "True":
     resources_sns_subscription = {
         f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
             "Type": "AWS::SNS::Subscription",
@@ -189,9 +190,6 @@ template = {
 if resources_sns_topic != None:
     template["Resources"].update(resources_sns_topic)
 
-if resources_sns_subscription != None:
-    template["Resources"].update(resources_sns_subscription)
-
 if resources_dead_letter_queue != None:
     template["Resources"].update(resources_dead_letter_queue)
 
@@ -201,6 +199,12 @@ if resources_source_queue != None:
 if resources_queue_policy != None:
     template["Resources"].update(resources_queue_policy)
 
+if resources_sns_subscription != None:
+    template["Resources"].update(resources_sns_subscription)
 
-with open('DirectProvisionCloudFormation.json', 'w') as outfile:
-    json.dump(template, outfile, indent=4)
+
+# with open('DirectProvisionCloudFormation.json', 'w') as outfile:
+#     json.dump(template, outfile, indent=4)
+
+# Print the template to the console using rich
+rich.print(template)
