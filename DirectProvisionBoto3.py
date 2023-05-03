@@ -37,6 +37,7 @@ def provision_sqs_sns_queue():
                 return url, queue_arn
     except KeyError:
         print("Queue does not exist. Creating Queue...")
+        pass    
 
     try:
         if DeadLetterQueueName == "":

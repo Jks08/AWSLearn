@@ -1,0 +1,90 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Template for creating SNS Topic and SQS Queue",
+    "Parameters": {},
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "SNSTOPIC1": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "TopicName": "topic1",
+                "Tags": [
+                    {
+                        "Key": "LOB",
+                        "Value": ""
+                    },
+                    {
+                        "Key": "REF_ID",
+                        "Value": ""
+                    },
+                    {
+                        "Key": "Application Name",
+                        "Value": ""
+                    }
+                ]
+            }
+        },
+        "SQSQUEUE0": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": "test1dl"
+            }
+        },
+        "SQSQUEUE1": {
+            "Type": "AWS::SQS::Queue",
+            "DependsOn": "SQSQUEUE0",
+            "Properties": {
+                "QueueName": "test1",
+                "RedrivePolicy": {
+                    "deadLetterTargetArn": {
+                        "Fn::GetAtt": [
+                            "SQSQUEUE0",
+                            "Arn"
+                        ]
+                    },
+                    "maxReceiveCount": "5"
+                },
+                "Tags": [
+                    {
+                        "Key": "LOB",
+                        "Value": ""
+                    },
+                    {
+                        "Key": "REF_ID",
+                        "Value": ""
+                    },
+                    {
+                        "Key": "Application Name",
+                        "Value": ""
+                    }
+                ]
+            }
+        },
+        "SQSQUEUE1POLICY": {
+            "Type": "AWS::SQS::QueuePolicy",
+            "Properties": {
+                "Queues": [
+                    {
+                        "Ref": "SQSQUEUE1"
+                    }
+                ],
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "SQS:*",
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Resource": {
+                                "Fn::GetAtt": [
+                                    "SQSQUEUE1",
+                                    "Arn"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
