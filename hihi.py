@@ -113,8 +113,16 @@ def provision_sns_topic():
         print(f"Error is {e}")
         sys.exit(1)
 
-if QueueName != "":
+if QueueName == "":
+    print("Please provide a value for QueueName")
+    sys.exit(1)
+
+else:
     provision_sqs_sns_queue()
 
-if SNSTopicName != "":
+if SNSTopicName == "":
+    print("Please provide a value for SNSTopicName")
+    sys.exit(1)
+
+else:
     provision_sns_topic()
