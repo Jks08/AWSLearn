@@ -109,7 +109,7 @@ if "DeadLetterQueueName" != "":
 else:
     resources_dead_letter_queue = None
 
-if QueueName != "":
+if QueueName != "" and "DeadLetterQueueName" != "":
     resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
@@ -142,6 +142,31 @@ if QueueName != "":
             }
         }
     }
+
+elif QueueName != "" and "DeadLetterQueueName" == "":
+        resources_source_queue = {
+        f"SQSQUEUE{count}": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "QueueName": QueueName,
+                "Tags": [
+                    {
+                        "Key": "LOB",
+                        "Value": LOB
+                    },
+                    {   
+                        "Key": "REF_ID",
+                        "Value": REF_ID
+                    },
+                    {
+                        "Key": "Application Name",
+                        "Value": ApplicationName
+                    }
+                ]
+            }
+        }
+    }
+
 else:
     resources_source_queue = None
 
