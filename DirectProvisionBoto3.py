@@ -81,13 +81,29 @@ def provision_sqs_sns_queue():
         sys.exit(1)
 
 def provision_sns_topic():
+    global queue_arn
     for topic in sns.list_topics()['Topics']:
         if SNSTopicName in topic['TopicArn']:
-            print(f"SNS Topic already exists!")
-            return topic['TopicArn']
+            # Check if the SNS Topic has a subscription. If not, then subscribe.
+            if SNSSubscriptionRequired == "True":
+                subscriptions = sns.list_subscriptions_by_topic(
+                    TopicArn=topic['TopicArn']
+                )
+                if subscriptions['Subscriptions'] == []:
+                    response = sns.subscribe(
+                        TopicArn=topic['TopicArn'],
+                        Protocol='sqs',
+                        Endpoint=queue_arn 
+                    )
+                    subscription_arn = response['SubscriptionArn']
+                    print(f"Subscription created: {subscription_arn}")
+                else:
+                    print("Subscription already exists!")
+            return topic['TopicArn']    
         
     try:
-        if SNSSubscriptionRequired == "True":
+        
+        if SNSTopicName != "":
             response = sns.create_topic(
                 Name=SNSTopicName,
                 Attributes={
@@ -112,39 +128,22 @@ def provision_sns_topic():
             print(f"SNS Topic created: {topic_arn}")
 
             # Subscribe SQS Queue to SNS Topic
-            global queue_arn
-            response = sns.subscribe(
-                TopicArn=topic_arn,
-                Protocol='sqs',
-                Endpoint=queue_arn 
-            )
+            if SNSSubscriptionRequired == "True":
+                response = sns.subscribe(
+                    TopicArn=topic_arn,
+                    Protocol='sqs',
+                    Endpoint=queue_arn 
+                )
 
-            subscription_arn = response['SubscriptionArn']
-            print(f"SQS Queue subscribed to SNS Topic: {subscription_arn}")
+                subscription_arn = response['SubscriptionArn']
+                print(f"SQS Queue subscribed to SNS Topic: {subscription_arn}")
+            
+            else:
+                # This is the case when we want to create a new SNS Topic but not subscribe to it
+                print("Not subscribing SQS Queue to SNS Topic as SNSSubscriptionRequired is False")
 
         else:
-            response = sns.create_topic(
-                Name=SNSTopicName,
-                Attributes={
-                    'DisplayName': SNSTopicName
-                },
-                Tags=[
-                    {
-                        'Key': 'LOB',
-                        'Value': LOB
-                    },
-                    {
-                        'Key': 'REF_ID',
-                        'Value': REF_ID
-                    },
-                    {
-                        'Key': 'Application Name',
-                        'Value': ApplicationName
-                    }
-                ]
-            )
-            topic_arn = response['TopicArn']
-            print(f"SNS Topic created: {topic_arn}")
+            print("Not creating SNS Topic as SNSTopicName is not provided")
 
     except Exception as e:
         print(f"Error: {e}")
