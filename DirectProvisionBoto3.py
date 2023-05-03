@@ -25,15 +25,18 @@ queue_arn = None
 def provision_sqs_sns_queue():
     global queue_arn
     # If Queue already exists, then we print the Queue URL and exit
-    for url in sqs.list_queues()['QueueUrls']:
-        if QueueName in url:
-            queue_attributes = sqs.get_queue_attributes(
-                QueueUrl=url,
-                AttributeNames=['QueueArn']
-                )
-            queue_arn = queue_attributes['Attributes']['QueueArn']
-            print(f"Queue already exists!")
-            return url, queue_arn
+    try:
+        for url in sqs.list_queues()['QueueUrls']:
+            if QueueName in url:
+                queue_attributes = sqs.get_queue_attributes(
+                    QueueUrl=url,
+                    AttributeNames=['QueueArn']
+                    )
+                queue_arn = queue_attributes['Attributes']['QueueArn']
+                print(f"Queue already exists!")
+                return url, queue_arn
+    except KeyError:
+        print("Queue does not exist. Creating Queue...")
 
     try:
         if DeadLetterQueueName == "":
