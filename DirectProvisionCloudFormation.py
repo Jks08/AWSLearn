@@ -2,7 +2,12 @@
 import sys
 import boto3
 import json
+import botocore
+import re
+from botocore.exceptions import ClientError
 import rich
+
+
 
 try:
     Environment = sys.argv[1]
@@ -14,9 +19,59 @@ try:
     ApplicationName = sys.argv[7]
     SNSTopicName = sys.argv[8]
     SNSSubscriptionRequired = sys.argv[9]
+    Stackname = sys.argv[10]
 except IndexError:
     print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired")
     sys.exit(1)
+
+# Now we create the CloudFormation stack
+cloudformation = boto3.client('cloudformation')
+
+# We get the name of template to be updated. In the template, we find all SQSQUEUE 
+# in the Resources section and find the largest number. We increment the number by 1 and set it as count.
+
+# Get the template using the stack name
+try:
+    template_cft = cloudformation.get_template(StackName=Stackname)
+except botocore.exceptions.ClientError as e:
+    print(e.response['Error']['Message'])
+    pass
+
+# Get the Resources section of the template
+try:
+    template = dict(template_cft['TemplateBody'])
+    print(template)
+    
+except Exception:
+    template = {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "Template for creating SNS Topic and SQS Queue",
+        "Parameters": {},
+        "Mappings": {},
+        "Conditions": {},
+        "Resources": {}
+    }
+    print(template['Resources'])
+
+# Find the largest number in the SQSQUEUE resource name
+
+numlist = []
+for resource in template['Resources']:
+    num = re.findall(r'\d+', resource)
+    if num:
+        numlist.append(num)
+
+if len(DeadLetterQueueName) == 0:
+    count = int(max(numlist)[0]) + 1
+else:
+    count = int(max(numlist)[0]) + 2
+
+print(count)
+resources_source_queue = {}
+resources_dead_letter_queue = {}
+resources_queue_policy = {}
+resources_sns_topic = {}
+resources_sns_subscription = {}
 
 sqs = boto3.client('sqs')
 sns = boto3.client('sns')
@@ -38,16 +93,6 @@ try:
 except KeyError:
     print("Queue does not exist. Creating Queue...")
     pass
-
-# Now we build the CloudFormation template as a json file
-# We will use the same template for both the CloudFormation and Boto3
-# versions of this script
-count = 1
-resources_source_queue = {}
-resources_dead_letter_queue = {}
-resources_queue_policy = {}
-resources_sns_topic = {}
-resources_sns_subscription = {}
 
 if SNSTopicName != "":
     resources_sns_topic = {
@@ -97,7 +142,7 @@ if SNSSubscriptionRequired == "True":
 else:
     resources_sns_subscription = None
 
-if "DeadLetterQueueName" != "":
+if len(DeadLetterQueueName) != 0:
     resources_dead_letter_queue = {
         f"SQSQUEUE{count-1}": {
             "Type": "AWS::SQS::Queue",
@@ -109,7 +154,8 @@ if "DeadLetterQueueName" != "":
 else:
     resources_dead_letter_queue = None
 
-if QueueName != "" and "DeadLetterQueueName" != "":
+if QueueName != "" and len(DeadLetterQueueName) != 0:
+    print("Both QueueName and DeadLetterQueueName are provided")
     resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
@@ -143,8 +189,9 @@ if QueueName != "" and "DeadLetterQueueName" != "":
         }
     }
 
-elif QueueName != "" and "DeadLetterQueueName" == "":
-        resources_source_queue = {
+elif QueueName != "" and len(DeadLetterQueueName) == 0:
+    print("Only QueueName is provided")
+    resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
@@ -202,16 +249,6 @@ else:
     resources_queue_policy = None
 
 
-template = {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Template for creating SNS Topic and SQS Queue",
-    "Parameters": {},
-    "Mappings": {},
-    "Conditions": {},
-    "Resources": {}
-}
-
-
 if resources_sns_topic != None:
     template["Resources"].update(resources_sns_topic)
 
@@ -227,26 +264,25 @@ if resources_queue_policy != None:
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
 
+print(json.dumps(template, indent=4))
+# # Provision the template
+# try:
+#     response = cloudformation.create_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#     )
+#     print(f"Stack creation initiated. Stack ID: {response['StackId']}")
 
-# with open('DirectProvisionCloudFormation.json', 'w') as outfile:
-#     json.dump(template, outfile, indent=4)
+# except ClientError as e:
+#     print("Stack already exists. Updating the stack...")
 
-# Print the template to the console using rich
-# rich.print(template)
+#     response = cloudformation.update_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#     )
+#     print(f"Stack update initiated. Stack ID: {response['StackId']}")
 
-# Now we create the CloudFormation stack
-cloudformation = boto3.client('cloudformation')
-if QueueName != "":
-    stack_name = f"{QueueName}-stack"
-else:
-    stack_name = f"{SNSTopicName}-stack"
-try:
-    response = cloudformation.create_stack(
-        StackName=stack_name,
-        TemplateBody=json.dumps(template, indent=4),
-        OnFailure='ROLLBACK'
-    )
-    print(f"Stack {stack_name} created successfully!")
-except Exception as e:
-    print(e)
-    sys.exit(1)
+# update_stack = cloudformation.update_stack(
+#     StackName=Stackname,
+#     TemplateBody=json.dumps(template, indent=4),
+# )
