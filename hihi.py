@@ -27,6 +27,13 @@ sns = boto3.client('sns')
 # 3. If there is no value for DeadLetterQueueName, then we do not create a Dead Letter Queue and we do not include a RedrivePolicy in the SQS Queue
 # 4. If there is a value for DeadLetterQueueName, then we create a Dead Letter Queue and we include a RedrivePolicy in the SQS Queue
 def provision_sqs_sns_queue():
+    # If Queue already exists, then we print the Queue URL and exit
+    for url in sqs.list_queues()['QueueUrls']:
+        if QueueName in url:
+            print(f"Queue already exists!")
+            print(f"Queue URL is {url}")
+            sys.exit(0)
+
     try:
         if DeadLetterQueueName == "":
             response = sqs.create_queue(
