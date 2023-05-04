@@ -343,17 +343,15 @@ if resources_sns_subscription != None:
 
 # print(json.dumps(template, indent=4))
 
-# try:
-#     update_stack = cloudformation.update_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#         )
-#     print(f"Updating the stack {Stackname}")
-# except botocore.exceptions.ClientError as e:
-#     create_stack = cloudformation.create_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#         )
-#     print(f"Creating New Stack {Stackname}")
-
-print(json.dumps(template, indent=4))
+try:
+    update_stack = cloudformation.update_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Updating the stack {Stackname}")
+except botocore.exceptions.ClientError as e:
+    create_stack = cloudformation.create_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Creating New Stack {Stackname}")
