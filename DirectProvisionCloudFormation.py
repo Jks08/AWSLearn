@@ -18,7 +18,7 @@ try:
     SNSSubscriptionRequired = sys.argv[9]
     Stackname = sys.argv[10]
 except IndexError:
-    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired")
+    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, Stackname")
     sys.exit(1)
 
 # Now we create the CloudFormation stack
@@ -76,7 +76,8 @@ queue_arn = None
 # If Queue already exists, then we print the Queue URL and exit
 try:
     for url in sqs.list_queues()['QueueUrls']:
-        if QueueName in url:
+        # Need to check if the exact QueueName exists
+        if QueueName == url.split('/')[-1]:
             queue_attributes = sqs.get_queue_attributes(
                 QueueUrl=url,
                 AttributeNames=['QueueArn']
@@ -90,52 +91,116 @@ except KeyError:
     print("Queue does not exist. Creating Queue...")
     pass
 
+snsList = []
 if SNSTopicName != "":
-    resources_sns_topic = {
-        f"SNSTOPIC{count}": {
-            "Type": "AWS::SNS::Topic",
-            "Properties": {
-                "TopicName": SNSTopicName,
-                "Tags": [
-                    {
-                        "Key": "LOB",
-                        "Value": LOB
+    for topic in sns.list_topics()['Topics']:
+        snsList.append(topic['TopicArn'].split(':')[-1])
+
+for resource in template['Resources']:
+    if "SNSTOPIC" in resource:
+        if template['Resources'][f"{resource}"]["Properties"]['TopicName']==SNSTopicName:
+            existing_SNSTOPIC = resource
+
+if SNSTopicName != "" and SNSSubscriptionRequired == "True":
+    if SNSTopicName in snsList:
+        print(f"SNS Topic already exists!")
+        resources_sns_subscription = {
+            f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
+                "Type": "AWS::SNS::Subscription",
+                "Properties": {
+                    "TopicArn": {
+                        "Ref": existing_SNSTOPIC
                     },
-                    {
-                        "Key": "REF_ID",
-                        "Value": REF_ID
+                    "Endpoint": {
+                        "Fn::GetAtt": [
+                            f"SQSQUEUE{count}",
+                            "Arn"
+                        ]
                     },
-                    {
-                        "Key": "Application Name",
-                        "Value": ApplicationName
-                    }
-                ]
+                    "Protocol": "sqs",
+                    "RawMessageDelivery": "false"
+                }
             }
         }
-    }
+
+    else:
+        print(f"Creating SNS Topic and Subscription...")
+        resources_sns_topic = {
+            f"SNSTOPIC{count}": {
+                "Type": "AWS::SNS::Topic",
+                "Properties": {
+                    "TopicName": SNSTopicName,
+                    "Tags": [
+                        {
+                            "Key": "LOB",
+                            "Value": LOB
+                        },
+                        {
+                            "Key": "REF_ID",
+                            "Value": REF_ID
+                        },
+                        {
+                            "Key": "Application Name",
+                            "Value": ApplicationName
+                        }
+                    ]
+                }
+            }
+        }
+
+        resources_sns_subscription = {
+            f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
+                "Type": "AWS::SNS::Subscription",
+                "Properties": {
+                    "TopicArn": {
+                        "Ref": f"SNSTOPIC{count}"
+                    },
+                    "Endpoint": {
+                        "Fn::GetAtt": [
+                            f"SQSQUEUE{count}",
+                            "Arn"
+                        ]
+                    },
+                    "Protocol": "sqs",
+                    "RawMessageDelivery": "false"
+                }
+            }
+        }
+
+elif SNSTopicName != "" and SNSSubscriptionRequired == "False":
+    if SNSTopicName in snsList:
+        print(f"SNS Topic already exists!")
+        resources_sns_subscription = None
+        resources_sns_topic = None
+        pass
+    else:
+        print(f"Creating SNS Topic...")
+        resources_sns_topic = {
+            f"SNSTOPIC{count}": {
+                "Type": "AWS::SNS::Topic",
+                "Properties": {
+                    "TopicName": SNSTopicName,
+                    "Tags": [
+                        {
+                            "Key": "LOB",
+                            "Value": LOB
+                        },
+                        {
+                            "Key": "REF_ID",
+                            "Value": REF_ID
+                        },
+                        {
+                            "Key": "Application Name",
+                            "Value": ApplicationName
+                        }
+                    ]
+                }
+            }
+        }
+        resources_sns_subscription = None
+
 else:
     resources_sns_topic = None
-
-if SNSSubscriptionRequired == "True":
-    resources_sns_subscription = {
-        f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
-            "Type": "AWS::SNS::Subscription",
-            "Properties": {
-                "TopicArn": {
-                    "Ref": f"SNSTOPIC{count}"
-                },
-                "Endpoint": {
-                    "Fn::GetAtt": [
-                        f"SQSQUEUE{count}",
-                        "Arn"
-                    ]
-                },
-                "Protocol": "sqs",
-                "RawMessageDelivery": "false"
-            }
-        }
-    }
-else:
     resources_sns_subscription = None
 
 if len(DeadLetterQueueName) != 0:
@@ -151,7 +216,7 @@ else:
     resources_dead_letter_queue = None
 
 if QueueName != "" and len(DeadLetterQueueName) != 0:
-    print("Both QueueName and DeadLetterQueueName are provided")
+    # print("Both QueueName and DeadLetterQueueName are provided")
     resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
@@ -186,7 +251,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
     }
 
 elif QueueName != "" and len(DeadLetterQueueName) == 0:
-    print("Only QueueName is provided")
+    # print("Only QueueName is provided")
     resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
@@ -259,6 +324,8 @@ if resources_queue_policy != None:
 
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
+
+print(json.dumps(template, indent=4))
 
 try:
     update_stack = cloudformation.update_stack(
