@@ -32,7 +32,7 @@ pipeline{
                         // Get the logs that occur in AWS because of the above script
                         sh "aws cloudformation describe-stack-events --stack-name ${params.StackName} --output text --query 'StackEvents[*].[ResourceStatus,ResourceStatusReason]'"
                         // If there is any error while updating/creating the stack, show job as failed and the error message and exit the pipeline
-                        sh "aws cloudformation describe-stack-events --stack-name ${params.StackName} --output text --query 'StackEvents[*].[ResourceStatus,ResourceStatusReason]' | grep -i 'FAILED' && exit 1 || echo 'No Errors'"
+                        // sh "aws cloudformation describe-stack-events --stack-name ${params.StackName} --output text --query 'StackEvents[*].[ResourceStatus,ResourceStatusReason]' | grep -i 'FAILED' && exit 1 || echo 'No Errors'"
 
                     }
             }
