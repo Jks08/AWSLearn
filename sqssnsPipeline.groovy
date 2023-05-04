@@ -14,8 +14,9 @@ pipeline{
         stage('Start Virtual Environment'){
             steps{
                 script{
-                        // sh "python3 -m venv venv"
+                        sh "python3 -m venv venv"
                         sh ". venv/bin/activate"
+                        sh "pip3 install boto3"
                 }
             }
         }
