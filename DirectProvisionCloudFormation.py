@@ -325,7 +325,7 @@ if resources_queue_policy != None:
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
 
-print(json.dumps(template, indent=4))
+# print(json.dumps(template, indent=4))
 
 try:
     update_stack = cloudformation.update_stack(
