@@ -12,13 +12,19 @@ try:
     DeadLetterQueueName = sys.argv[3]
     MaxReceiveCount = sys.argv[4]
     LOB = sys.argv[5]
-    REF_ID = sys.argv[6]
+    REF_ID = sys.argv[6] # For the parameter JIRA_ID
     ApplicationName = sys.argv[7]
     SNSTopicName = sys.argv[8]
     SNSSubscriptionRequired = sys.argv[9]
-    Stackname = sys.argv[10]
+    VisibilityTimeout = sys.argv[10]
+    MessageRetentionPeriod = sys.argv[11]
+    MaximumMessageSize = sys.argv[12]
+    DelaySeconds = sys.argv[13]
+    ReceiveMessageWaitTimeSeconds = sys.argv[14]
+    RawMessageDelivery = sys.argv[15]
+    Stackname = sys.argv[16]
 except IndexError:
-    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, Stackname")
+    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname")
     sys.exit(1)
 
 # Now we create the CloudFormation stack
@@ -118,7 +124,7 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
                         ]
                     },
                     "Protocol": "sqs",
-                    "RawMessageDelivery": "false"
+                    "RawMessageDelivery": RawMessageDelivery
                 }
             }
         }
@@ -162,7 +168,7 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
                         ]
                     },
                     "Protocol": "sqs",
-                    "RawMessageDelivery": "false"
+                    "RawMessageDelivery": RawMessageDelivery
                 }
             }
         }
@@ -223,6 +229,11 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
             "DependsOn": f"SQSQUEUE{count-1}",
             "Properties": {
                 "QueueName": QueueName,
+                "VisibilityTimeout" : VisibilityTimeout,
+                "DelaySeconds": DelaySeconds,
+                "MessageRetentionPeriod": MessageRetentionPeriod,
+                "MaximumMessageSize": MaximumMessageSize,
+                "ReceiveMessageWaitTimeSeconds": ReceiveMessageWaitTimeSeconds,
                 "RedrivePolicy": {
                     "deadLetterTargetArn": {
                         "Fn::GetAtt": [
@@ -257,6 +268,11 @@ elif QueueName != "" and len(DeadLetterQueueName) == 0:
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": QueueName,
+                "VisibilityTimeout" : VisibilityTimeout,
+                "DelaySeconds": DelaySeconds,
+                "MessageRetentionPeriod": MessageRetentionPeriod,
+                "MaximumMessageSize": MaximumMessageSize,
+                "ReceiveMessageWaitTimeSeconds": ReceiveMessageWaitTimeSeconds,
                 "Tags": [
                     {
                         "Key": "LOB",
@@ -327,15 +343,17 @@ if resources_sns_subscription != None:
 
 # print(json.dumps(template, indent=4))
 
-try:
-    update_stack = cloudformation.update_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Updating the stack {Stackname}")
-except botocore.exceptions.ClientError as e:
-    create_stack = cloudformation.create_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Creating New Stack {Stackname}")
+# try:
+#     update_stack = cloudformation.update_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Updating the stack {Stackname}")
+# except botocore.exceptions.ClientError as e:
+#     create_stack = cloudformation.create_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Creating New Stack {Stackname}")
+
+print(json.dumps(template, indent=4))
