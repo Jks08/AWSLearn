@@ -24,9 +24,6 @@ except IndexError:
 # Now we create the CloudFormation stack
 cloudformation = boto3.client('cloudformation')
 
-# We get the name of template to be updated. In the template, we find all SQSQUEUE 
-# in the Resources section and find the largest number. We increment the number by 1 and set it as count.
-
 # Get the template using the stack name
 try:
     template_cft = cloudformation.get_template(StackName=Stackname)
@@ -262,24 +259,6 @@ if resources_queue_policy != None:
 
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
-
-# print(json.dumps(template, indent=4))
-# # Provision the template
-# try:
-#     response = cloudformation.create_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#     )
-#     print(f"Stack creation initiated. Stack ID: {response['StackId']}")
-
-# except ClientError as e:
-#     print("Stack already exists. Updating the stack...")
-
-#     response = cloudformation.update_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#     )
-#     print(f"Stack update initiated. Stack ID: {response['StackId']}")
 
 try:
     update_stack = cloudformation.update_stack(
