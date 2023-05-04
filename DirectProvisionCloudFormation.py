@@ -5,9 +5,6 @@ import json
 import botocore
 import re
 from botocore.exceptions import ClientError
-import rich
-
-
 
 try:
     Environment = sys.argv[1]
@@ -40,7 +37,7 @@ except botocore.exceptions.ClientError as e:
 # Get the Resources section of the template
 try:
     template = dict(template_cft['TemplateBody'])
-    print(template)
+    # print(template)
     
 except Exception:
     template = {
@@ -51,7 +48,7 @@ except Exception:
         "Conditions": {},
         "Resources": {}
     }
-    print(template['Resources'])
+    # print(template['Resources'])
 
 # Find the largest number in the SQSQUEUE resource name
 
@@ -60,11 +57,13 @@ for resource in template['Resources']:
     num = re.findall(r'\d+', resource)
     if num:
         numlist.append(num)
-
-if len(DeadLetterQueueName) == 0:
-    count = int(max(numlist)[0]) + 1
-else:
-    count = int(max(numlist)[0]) + 2
+try:
+    if len(DeadLetterQueueName) == 0:
+        count = int(max(numlist)[0]) + 1
+    else:
+        count = int(max(numlist)[0]) + 2
+except ValueError:
+    count = 1
 
 print(count)
 resources_source_queue = {}
@@ -264,7 +263,7 @@ if resources_queue_policy != None:
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
 
-print(json.dumps(template, indent=4))
+# print(json.dumps(template, indent=4))
 # # Provision the template
 # try:
 #     response = cloudformation.create_stack(
@@ -282,7 +281,15 @@ print(json.dumps(template, indent=4))
 #     )
 #     print(f"Stack update initiated. Stack ID: {response['StackId']}")
 
-# update_stack = cloudformation.update_stack(
-#     StackName=Stackname,
-#     TemplateBody=json.dumps(template, indent=4),
-# )
+try:
+    update_stack = cloudformation.update_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Updating the stack {Stackname}")
+except botocore.exceptions.ClientError as e:
+    create_stack = cloudformation.create_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Creating New Stack {Stackname}")
