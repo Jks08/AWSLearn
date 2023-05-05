@@ -16,15 +16,16 @@ try:
     ApplicationName = sys.argv[7]
     SNSTopicName = sys.argv[8]
     SNSSubscriptionRequired = sys.argv[9]
-    VisibilityTimeout = sys.argv[10]
-    MessageRetentionPeriod = sys.argv[11]
-    MaximumMessageSize = sys.argv[12]
-    DelaySeconds = sys.argv[13]
-    ReceiveMessageWaitTimeSeconds = sys.argv[14]
-    RawMessageDelivery = sys.argv[15]
-    Stackname = sys.argv[16]
+    QueueType = sys.argv[10]
+    VisibilityTimeout = sys.argv[11]
+    MessageRetentionPeriod = sys.argv[12]
+    MaximumMessageSize = sys.argv[13]
+    DelaySeconds = sys.argv[14]
+    ReceiveMessageWaitTimeSeconds = sys.argv[15]
+    RawMessageDelivery = sys.argv[16]
+    Stackname = sys.argv[17]
 except IndexError:
-    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname")
+    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, QueueType, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname")
     sys.exit(1)
 
 # Now we create the CloudFormation stack
@@ -229,6 +230,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
             "DependsOn": f"SQSQUEUE{count-1}",
             "Properties": {
                 "QueueName": QueueName,
+                "QueueType": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
@@ -262,12 +264,13 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
     }
 
 elif QueueName != "" and len(DeadLetterQueueName) == 0:
-    # print("Only QueueName is provided")
+    # print("Only Source QueueName is provided")
     resources_source_queue = {
         f"SQSQUEUE{count}": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": QueueName,
+                "QueueType": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
