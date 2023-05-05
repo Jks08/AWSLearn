@@ -17,6 +17,11 @@ try:
     SNSTopicName = sys.argv[8]
     SNSSubscriptionRequired = sys.argv[9]
     QueueType = sys.argv[10]
+    # If QueueType is FIFO, then set QueueType to true else false
+    if QueueType == "FIFO":
+        QueueType = True
+    else:
+        QueueType = False
     VisibilityTimeout = sys.argv[11]
     MessageRetentionPeriod = sys.argv[12]
     MaximumMessageSize = sys.argv[13]
@@ -230,7 +235,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
             "DependsOn": f"SQSQUEUE{count-1}",
             "Properties": {
                 "QueueName": QueueName,
-                "QueueType": QueueType,
+                "FifoQueue": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
@@ -270,7 +275,7 @@ elif QueueName != "" and len(DeadLetterQueueName) == 0:
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": QueueName,
-                "QueueType": QueueType,
+                "FifoQueue": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
