@@ -235,7 +235,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
             "DependsOn": f"SQSQUEUE{count-1}",
             "Properties": {
                 "QueueName": QueueName,
-                "FifoQueue": QueueType,
+                # "FifoQueue": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
@@ -275,7 +275,7 @@ elif QueueName != "" and len(DeadLetterQueueName) == 0:
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": QueueName,
-                "FifoQueue": QueueType,
+                # "FifoQueue": QueueType,
                 "VisibilityTimeout" : VisibilityTimeout,
                 "DelaySeconds": DelaySeconds,
                 "MessageRetentionPeriod": MessageRetentionPeriod,
