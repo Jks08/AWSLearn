@@ -33,8 +33,35 @@ except IndexError:
     print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, QueueType, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname")
     sys.exit(1)
 
+print(f"Environment: {Environment}")
+print(f"QueueName: {QueueName}")
+print(f"DeadLetterQueueName: {DeadLetterQueueName}")
+print(f"MaxReceiveCount: {MaxReceiveCount}")
+print(f"LOB: {LOB}")
+print(f"REF_ID: {REF_ID}")
+print(f"ApplicationName: {ApplicationName}")
+print(f"SNSTopicName: {SNSTopicName}")
+print(f"SNSSubscriptionRequired: {SNSSubscriptionRequired}")
+print(f"QueueType: {QueueType}")
+print(f"VisibilityTimeout: {VisibilityTimeout}")
+print(f"MessageRetentionPeriod: {MessageRetentionPeriod}")
+print(f"MaximumMessageSize: {MaximumMessageSize}")
+print(f"DelaySeconds: {DelaySeconds}")
+print(f"ReceiveMessageWaitTimeSeconds: {ReceiveMessageWaitTimeSeconds}")
+print(f"RawMessageDelivery: {RawMessageDelivery}")
+print(f"Stackname: {Stackname}")
+
 # Now we create the CloudFormation stack
 cloudformation = boto3.client('cloudformation')
+
+# Print list of stacks containing SNS-SQS in the name
+try:
+    for stack in cloudformation.list_stacks()['StackSummaries']:
+        if "SNS-SQS" in stack['StackName']:
+            print(stack['StackName'])
+except KeyError:
+    print("No stacks found with SNS-SQS in the name")
+    pass
 
 # Get the template using the stack name
 try:
@@ -61,20 +88,36 @@ except Exception:
 
 # Find the largest number in the SQSQUEUE resource name
 
-numlist = []
-for resource in template['Resources']:
-    num = re.findall(r'\d+', resource)
-    if num:
-        numlist.append(num)
-try:
-    if len(DeadLetterQueueName) == 0:
-        count = int(max(numlist)[0]) + 1
-    else:
-        count = int(max(numlist)[0]) + 2
-except ValueError:
-    count = 1
+# numlist = []
+# for resource in template['Resources']:
+#     num = re.findall(r'\d+', resource)
+#     if num:
+#         numlist.append(num)
+# try:
+#     if len(DeadLetterQueueName) == 0:
+#         count = int(max(numlist)[0]) + 1
+#     else:
+#         count = int(max(numlist)[0]) + 2
+# except ValueError:
+#     count = 1
 
-print(count)
+sqsQueueCount = 0
+snsTopicCount = 0
+
+# Find the number following "SQSQUEUE" and "SNSTOPIC" uder Resources
+for resource in template['Resources']:
+    if "SQSQUEUE" in resource:
+        # Find the number following "SQSQUEUE"
+        sqsQueueCount = int(re.findall(r'\d+', resource)[0])
+    if "SNSTOPIC" in resource:
+        # Find the number following "SNSTOPIC"
+        snsTopicCount = int(re.findall(r'\d+', resource)[0])
+
+sqsQueueCount += 2
+snsTopicCount += 1
+print(f"SQSQUEUE count: {sqsQueueCount}")
+print(f"SNSTOPIC count: {snsTopicCount}")
+
 resources_source_queue = {}
 resources_dead_letter_queue = {}
 resources_queue_policy = {}
@@ -117,7 +160,7 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
     if SNSTopicName in snsList:
         print(f"SNS Topic already exists!")
         resources_sns_subscription = {
-            f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
+            f"SNSSUBSCRIPTION{snsTopicCount}SQSQUEUE{sqsQueueCount}": {
                 "Type": "AWS::SNS::Subscription",
                 "Properties": {
                     "TopicArn": {
@@ -125,7 +168,7 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
                     },
                     "Endpoint": {
                         "Fn::GetAtt": [
-                            f"SQSQUEUE{count}",
+                            f"SQSQUEUE{sqsQueueCount}",
                             "Arn"
                         ]
                     },
@@ -138,7 +181,7 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
     else:
         print(f"Creating SNS Topic and Subscription...")
         resources_sns_topic = {
-            f"SNSTOPIC{count}": {
+            f"SNSTOPIC{snsTopicCount}": {
                 "Type": "AWS::SNS::Topic",
                 "Properties": {
                     "TopicName": SNSTopicName,
@@ -161,15 +204,15 @@ if SNSTopicName != "" and SNSSubscriptionRequired == "True":
         }
 
         resources_sns_subscription = {
-            f"SNSSUBSCRIPTION{count}SQSQUEUE{count}": {
+            f"SNSSUBSCRIPTION{snsTopicCount}SQSQUEUE{sqsQueueCount}": {
                 "Type": "AWS::SNS::Subscription",
                 "Properties": {
                     "TopicArn": {
-                        "Ref": f"SNSTOPIC{count}"
+                        "Ref": f"SNSTOPIC{snsTopicCount}"
                     },
                     "Endpoint": {
                         "Fn::GetAtt": [
-                            f"SQSQUEUE{count}",
+                            f"SQSQUEUE{sqsQueueCount}",
                             "Arn"
                         ]
                     },
@@ -188,7 +231,7 @@ elif SNSTopicName != "" and SNSSubscriptionRequired == "False":
     else:
         print(f"Creating SNS Topic...")
         resources_sns_topic = {
-            f"SNSTOPIC{count}": {
+            f"SNSTOPIC{snsTopicCount}": {
                 "Type": "AWS::SNS::Topic",
                 "Properties": {
                     "TopicName": SNSTopicName,
@@ -217,7 +260,7 @@ else:
 
 if len(DeadLetterQueueName) != 0:
     resources_dead_letter_queue = {
-        f"SQSQUEUE{count-1}": {
+        f"SQSQUEUE{sqsQueueCount-1}": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": DeadLetterQueueName
@@ -230,9 +273,9 @@ else:
 if QueueName != "" and len(DeadLetterQueueName) != 0:
     # print("Both QueueName and DeadLetterQueueName are provided")
     resources_source_queue = {
-        f"SQSQUEUE{count}": {
+        f"SQSQUEUE{sqsQueueCount}": {
             "Type": "AWS::SQS::Queue",
-            "DependsOn": f"SQSQUEUE{count-1}",
+            "DependsOn": f"SQSQUEUE{sqsQueueCount-1}",
             "Properties": {
                 "QueueName": QueueName,
                 # "FifoQueue": QueueType,
@@ -244,7 +287,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
                 "RedrivePolicy": {
                     "deadLetterTargetArn": {
                         "Fn::GetAtt": [
-                            f"SQSQUEUE{count-1}",
+                            f"SQSQUEUE{sqsQueueCount-1}",
                             "Arn"
                         ]
                     },
@@ -271,7 +314,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
 elif QueueName != "" and len(DeadLetterQueueName) == 0:
     # print("Only Source QueueName is provided")
     resources_source_queue = {
-        f"SQSQUEUE{count}": {
+        f"SQSQUEUE{sqsQueueCount}": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": QueueName,
@@ -304,12 +347,12 @@ else:
 
 if QueueName != "":
     resources_queue_policy = {
-        f"SQSQUEUE{count}POLICY": {
+        f"SQSQUEUE{sqsQueueCount}POLICY": {
             "Type": "AWS::SQS::QueuePolicy",
             "Properties": {
                 "Queues": [
                     {
-                        "Ref": f"SQSQUEUE{count}"
+                        "Ref": f"SQSQUEUE{sqsQueueCount}"
                     }
                 ],
                 "PolicyDocument": {
@@ -320,7 +363,7 @@ if QueueName != "":
                             "Principal": "*",
                             "Resource": {
                                 "Fn::GetAtt": [
-                                    f"SQSQUEUE{count}",
+                                    f"SQSQUEUE{sqsQueueCount}",
                                     "Arn"
                                 ]
                             }
