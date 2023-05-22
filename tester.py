@@ -102,6 +102,19 @@ except ValueError:
     count = 1
 
 print(count)
+
+# Find the number following "SQSQUEUE" and "SNSTOPIC" uder Resources
+for resource in template['Resources']:
+    if "SQSQUEUE" in resource:
+        if template['Resources'][f"{resource}"]["Properties"]['QueueName']==QueueName:
+            existing_SQSQUEUE = resource
+    if "SNSTOPIC" in resource:
+        if template['Resources'][f"{resource}"]["Properties"]['TopicName']==SNSTopicName:
+            existing_SNSTOPIC = resource
+
+print(existing_SQSQUEUE)
+print(existing_SNSTOPIC)
+
 resources_source_queue = {}
 resources_dead_letter_queue = {}
 resources_queue_policy = {}
