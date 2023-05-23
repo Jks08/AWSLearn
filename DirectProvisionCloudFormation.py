@@ -64,7 +64,7 @@ except Exception:
 if Action == 'update':
     for resource in template['Resources']:
         try:
-            if len(resource)<=11 and 'SQSQUEUE' in resource:
+            if len(resource)<13 and template['Resources'][resource]['Properties']['QueueName'] == QueueName:
                 print(resource)
                 qName = template['Resources'][resource]['Properties']['QueueName']
                 
