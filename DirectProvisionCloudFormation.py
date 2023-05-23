@@ -38,13 +38,13 @@ except IndexError:
 cloudformation = boto3.client('cloudformation')
 
 # Print list of stacks containing SNS-SQS in the name
-try:
-    for stack in cloudformation.list_stacks()['StackSummaries']:
-        if "SNS-SQS" in stack['StackName']:
-            print(stack['StackName'])
-except KeyError:
-    print("No stacks found with SNS-SQS in the name")
-    pass
+# try:
+#     for stack in cloudformation.list_stacks()['StackSummaries']:
+#         if "SNS-SQS" in stack['StackName']:
+#             print(stack['StackName'])
+# except KeyError:
+#     print("No stacks found with SNS-SQS in the name")
+#     pass
 
 stackNameNum = int(Stackname[-2::])
 
