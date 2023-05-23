@@ -29,27 +29,10 @@ try:
     ReceiveMessageWaitTimeSeconds = sys.argv[15]
     RawMessageDelivery = sys.argv[16]
     Stackname = sys.argv[17]
+    Action = sys.argv[18]
 except IndexError:
-    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, QueueType, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname")
+    print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, QueueType, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname, Action")
     sys.exit(1)
-
-print(f"Environment: {Environment}")
-print(f"QueueName: {QueueName}")
-print(f"DeadLetterQueueName: {DeadLetterQueueName}")
-print(f"MaxReceiveCount: {MaxReceiveCount}")
-print(f"LOB: {LOB}")
-print(f"REF_ID: {REF_ID}")
-print(f"ApplicationName: {ApplicationName}")
-print(f"SNSTopicName: {SNSTopicName}")
-print(f"SNSSubscriptionRequired: {SNSSubscriptionRequired}")
-print(f"QueueType: {QueueType}")
-print(f"VisibilityTimeout: {VisibilityTimeout}")
-print(f"MessageRetentionPeriod: {MessageRetentionPeriod}")
-print(f"MaximumMessageSize: {MaximumMessageSize}")
-print(f"DelaySeconds: {DelaySeconds}")
-print(f"ReceiveMessageWaitTimeSeconds: {ReceiveMessageWaitTimeSeconds}")
-print(f"RawMessageDelivery: {RawMessageDelivery}")
-print(f"Stackname: {Stackname}")
 
 # Now we create the CloudFormation stack
 cloudformation = boto3.client('cloudformation')
@@ -87,6 +70,45 @@ except Exception:
         "Resources": {}
     }
 
+if Action == 'update':
+    for resource in template['Resources']:
+        try:
+            if len(resource)<=9 and 'SQSQUEUE' in resource:
+                print(resource)
+                qName = template['Resources'][resource]['Properties']['QueueName']
+                
+                # For VisibilityTimeout
+                if int(template['Resources'][resource]['Properties']['VisibilityTimeout']) != int(VisibilityTimeout):
+                    template['Resources'][resource]['Properties']['VisibilityTimeout'] = int(VisibilityTimeout)
+                    print(f"Updated VisibilityTimeout for {qName} to {VisibilityTimeout}")
+                
+                # For DelaySeconds
+                if int(template['Resources'][resource]['Properties']['DelaySeconds']) != int(DelaySeconds):
+                    template['Resources'][resource]['Properties']['DelaySeconds'] = int(DelaySeconds)
+                    print(f"Updated DelaySeconds for {qName} to {DelaySeconds}")
+
+                # For MessageRetentionPeriod
+                if int(template['Resources'][resource]['Properties']['MessageRetentionPeriod']) != int(MessageRetentionPeriod):
+                    template['Resources'][resource]['Properties']['MessageRetentionPeriod'] = int(MessageRetentionPeriod)
+                    print(f"Updated MessageRetentionPeriod for {qName} to {MessageRetentionPeriod}")
+
+                # For MaximumMessageSize
+                if int(template['Resources'][resource]['Properties']['MaximumMessageSize']) != int(MaximumMessageSize):
+                    template['Resources'][resource]['Properties']['MaximumMessageSize'] = int(MaximumMessageSize)
+                    print(f"Updated MaximumMessageSize for {qName} to {MaximumMessageSize}")
+
+                # For ReceiveMessageWaitTimeSeconds
+                if int(template['Resources'][resource]['Properties']['ReceiveMessageWaitTimeSeconds']) != int(ReceiveMessageWaitTimeSeconds):
+                    template['Resources'][resource]['Properties']['ReceiveMessageWaitTimeSeconds'] = int(ReceiveMessageWaitTimeSeconds)
+                    print(f"Updated ReceiveMessageWaitTimeSeconds for {qName} to {ReceiveMessageWaitTimeSeconds}")
+
+                # Now we print the template 
+                print(json.dumps(template, indent=4))
+                sys.exit(0)        
+        except KeyError:
+            pass
+
+
 print(f"Lenght of Template: {len(json.dumps(template, indent=4))}")
 
 if len(json.dumps(template, indent=4)) < 45000:
@@ -123,8 +145,6 @@ for resource in template['Resources']:
 
 sqsQueueCount += 2
 snsTopicCount += 1
-print(f"SQSQUEUE count: {sqsQueueCount}")
-print(f"SNSTOPIC count: {snsTopicCount}")
 
 resources_source_queue = {}
 resources_dead_letter_queue = {}
@@ -402,15 +422,15 @@ if resources_sns_subscription != None:
 
 print(json.dumps(template, indent=4))
 
-try:
-    update_stack = cloudformation.update_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Updating the stack {Stackname}")
-except botocore.exceptions.ClientError as e:
-    create_stack = cloudformation.create_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Creating New Stack {Stackname}")
+# try:
+#     update_stack = cloudformation.update_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Updating the stack {Stackname}")
+# except botocore.exceptions.ClientError as e:
+#     create_stack = cloudformation.create_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Creating New Stack {Stackname}")
