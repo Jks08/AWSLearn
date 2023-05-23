@@ -89,7 +89,7 @@ except Exception:
 
 print(f"Lenght of Template: {len(json.dumps(template, indent=4))}")
 
-if len(json.dumps(template, indent=4)) < 51200:
+if len(json.dumps(template, indent=4)) < 45000:
     print('Less than 51200')
     print(f'Updating same template with name: {Stackname}')
 
@@ -400,4 +400,4 @@ if resources_queue_policy != None:
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
 
-# print(json.dumps(template, indent=4))
+print(json.dumps(template, indent=4))
