@@ -95,6 +95,14 @@ if Action == 'update':
 
                 # Now we print the template 
                 print(json.dumps(template, indent=4))
+                try:
+                    update_stack = cloudformation.update_stack(
+                        StackName=Stackname,
+                        TemplateBody=json.dumps(template, indent=4),
+                        )
+                    print(f"Updating the stack {Stackname}")
+                except botocore.exceptions.ClientError as e:
+                    print(f"Exception: {e}")
                 sys.exit(0) 
             else:
                 print('No SQSQUEUE found in template')       
