@@ -394,15 +394,39 @@ if resources_sns_subscription != None:
 
 # print(json.dumps(template, indent=4))
 
-try:
-    update_stack = cloudformation.update_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Updating the stack {Stackname}")
-except botocore.exceptions.ClientError as e:
-    create_stack = cloudformation.create_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Creating New Stack {Stackname}")
+stackNameNum = int(Stackname[-2::])
+
+if len(json.dumps(template, indent=4)) < 51200:
+    print('Less than 51200')
+    print(f'Updating same template with name: {Stackname}')
+    # try:
+    #     update_stack = cloudformation.update_stack(
+    #         StackName=Stackname,
+    #         TemplateBody=json.dumps(template, indent=4),
+    #         )
+    #     print(f"Updating the stack {Stackname}")
+    # except botocore.exceptions.ClientError as e:
+    #     create_stack = cloudformation.create_stack(
+    #         StackName=Stackname,
+    #         TemplateBody=json.dumps(template, indent=4),
+    #         )
+    #     print(f"Creating New Stack {Stackname}")
+
+else:
+    print('Greater than 51200')
+    print('Cannot update this stack as it exceeds 51200')
+    stackNameNum += 1
+    Stackname = f"{Stackname[:-2]}_{stackNameNum}"
+    print(f'Creating new stack with name: {Stackname}')
+    # try:
+    #     create_stack = cloudformation.create_stack(
+    #         StackName=Stackname,
+    #         TemplateBody=json.dumps(template, indent=4),
+    #         )
+    #     print(f"Creating New Stack {Stackname}")
+    # except botocore.exceptions.ClientError as e:
+    #     print(e)
+    #     print("Stack already exists")
+
+print(json.dumps(template, indent=4))
+print(Stackname)
