@@ -97,7 +97,7 @@ else:
     print('Greater than 51200')
     print('Cannot update this stack as it exceeds 51200')
     stackNameNum += 1
-    Stackname = f"{Stackname[:-2]}-{stackNameNum}"
+    Stackname = f"{Stackname[:-2]}{stackNameNum}"
     print(f'Creating new stack with name: {Stackname}')
     template = {
         "AWSTemplateFormatVersion": "2010-09-09",
