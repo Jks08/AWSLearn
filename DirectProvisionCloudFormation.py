@@ -395,7 +395,7 @@ if resources_sns_subscription != None:
 # print(json.dumps(template, indent=4))
 
 stackNameNum = int(Stackname[-2::])
-
+print(f"Lenght of Template: {len(json.dumps(template, indent=4))}")
 if len(json.dumps(template, indent=4)) < 51200:
     print('Less than 51200')
     print(f'Updating same template with name: {Stackname}')
