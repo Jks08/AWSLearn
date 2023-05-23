@@ -37,15 +37,6 @@ except IndexError:
 # Now we create the CloudFormation stack
 cloudformation = boto3.client('cloudformation')
 
-# Print list of stacks containing SNS-SQS in the name
-# try:
-#     for stack in cloudformation.list_stacks()['StackSummaries']:
-#         if "SNS-SQS" in stack['StackName']:
-#             print(stack['StackName'])
-# except KeyError:
-#     print("No stacks found with SNS-SQS in the name")
-#     pass
-
 stackNameNum = int(Stackname[-2::])
 
 # Get the template using the stack name
@@ -71,6 +62,7 @@ except Exception:
     }
 
 if Action == 'update':
+    print(Action)
     for resource in template['Resources']:
         try:
             if len(resource)<=9 and 'SQSQUEUE' in resource:
@@ -104,12 +96,14 @@ if Action == 'update':
 
                 # Now we print the template 
                 print(json.dumps(template, indent=4))
-                sys.exit(0)        
+                sys.exit(0) 
+            else:
+                print('No SQSQUEUE found in template')       
         except KeyError:
             pass
 
 
-print(f"Lenght of Template: {len(json.dumps(template, indent=4))}")
+print(f"Length of Template: {len(json.dumps(template, indent=4))}")
 
 if len(json.dumps(template, indent=4)) < 45000:
     print('Less than 51200')
