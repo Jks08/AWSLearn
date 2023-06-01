@@ -37,7 +37,10 @@ except IndexError:
 # Now we create the CloudFormation stack
 cloudformation = boto3.client('cloudformation')
 
-stackNameNum = int(Stackname[-2::])
+try:
+    stackNameNum = int(Stackname[-2::])
+except ValueError:
+    stackNameNum = 1
 
 # Get the template using the stack name
 try:
