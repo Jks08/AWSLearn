@@ -23,9 +23,9 @@ for ami in amis:
         
         # Describe the snapshot to get DeleteOnTermination attribute
         snapshot = ec2_client.describe_snapshots(SnapshotIds=[snapshot_id])['Snapshots'][0]
-        delete_on_termination = snapshot['DeleteOnTermination']
-        
+        # delete_on_termination = snapshot['DeleteOnTermination']
+        print(dir(snapshot))
         # Store the scraped data in a list
-        scraped_data.append([ami_id, device_id, delete_on_termination])
+        # scraped_data.append([ami_id, device_id, delete_on_termination])
 
-print(scraped_data)
+# print(scraped_data)
