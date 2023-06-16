@@ -29,7 +29,7 @@ try:
     ReceiveMessageWaitTimeSeconds = sys.argv[15]
     RawMessageDelivery = sys.argv[16]
     Stackname = sys.argv[17]
-    Action = sys.argv[18]
+
 except IndexError:
     print("Please provide all the required arguments: Environment, QueueName, DeadLetterQueueName, MaxReceiveCount, LOB, REF_ID, ApplicationName, SNSTopicName, SNSSubscriptionRequired, QueueType, VisibilityTimeout, MessageRetentionPeriod, MaximumMessageSize, DelaySeconds,RawMessageDelivery, Stackname, Action")
     sys.exit(1)
@@ -39,7 +39,7 @@ cloudformation = boto3.client('cloudformation')
 
 try:
     stackNameNum = int(Stackname[-2::])
-except ValueError:
+except:
     stackNameNum = 1
 
 # Get the template using the stack name
@@ -49,14 +49,10 @@ except botocore.exceptions.ClientError as e:
     print(e.response['Error']['Message'])
     pass
 
-# # The template cft is stored in prodSNS.json
-# with open('prodSNS.json') as f:
-#     template_cft = json.load(f)
-
 # Get the Resources section of the template
 try:
     template = dict(template_cft['TemplateBody'])
-    # print(template)
+    print(template)
     
 except Exception:
     template = {
@@ -67,55 +63,6 @@ except Exception:
         "Conditions": {},
         "Resources": {}
     }
-
-# if Action == 'update':
-#     for resource in template['Resources']:
-#         try:
-#             if len(resource)<13 and template['Resources'][resource]['Properties']['QueueName'] == QueueName:
-#                 print(resource)
-#                 qName = template['Resources'][resource]['Properties']['QueueName']
-                
-#                 # For VisibilityTimeout
-#                 if int(template['Resources'][resource]['Properties']['VisibilityTimeout']) != int(VisibilityTimeout):
-#                     template['Resources'][resource]['Properties']['VisibilityTimeout'] = int(VisibilityTimeout)
-#                     print(f"Updated VisibilityTimeout for {qName} to {VisibilityTimeout}")
-                
-#                 # For DelaySeconds
-#                 if int(template['Resources'][resource]['Properties']['DelaySeconds']) != int(DelaySeconds):
-#                     template['Resources'][resource]['Properties']['DelaySeconds'] = int(DelaySeconds)
-#                     print(f"Updated DelaySeconds for {qName} to {DelaySeconds}")
-
-#                 # For MessageRetentionPeriod
-#                 if int(template['Resources'][resource]['Properties']['MessageRetentionPeriod']) != int(MessageRetentionPeriod):
-#                     template['Resources'][resource]['Properties']['MessageRetentionPeriod'] = int(MessageRetentionPeriod)
-#                     print(f"Updated MessageRetentionPeriod for {qName} to {MessageRetentionPeriod}")
-
-#                 # For MaximumMessageSize
-#                 if int(template['Resources'][resource]['Properties']['MaximumMessageSize']) != int(MaximumMessageSize):
-#                     template['Resources'][resource]['Properties']['MaximumMessageSize'] = int(MaximumMessageSize)
-#                     print(f"Updated MaximumMessageSize for {qName} to {MaximumMessageSize}")
-
-#                 # For ReceiveMessageWaitTimeSeconds
-#                 if int(template['Resources'][resource]['Properties']['ReceiveMessageWaitTimeSeconds']) != int(ReceiveMessageWaitTimeSeconds):
-#                     template['Resources'][resource]['Properties']['ReceiveMessageWaitTimeSeconds'] = int(ReceiveMessageWaitTimeSeconds)
-#                     print(f"Updated ReceiveMessageWaitTimeSeconds for {qName} to {ReceiveMessageWaitTimeSeconds}")
-
-#                 # Now we print the template 
-#                 print(json.dumps(template, indent=4))
-#                 # try:
-#                 #     update_stack = cloudformation.update_stack(
-#                 #         StackName=Stackname,
-#                 #         TemplateBody=json.dumps(template, indent=4),
-#                 #         )
-#                 #     print(f"Updating the stack {Stackname}")
-#                 # except botocore.exceptions.ClientError as e:
-#                 #     print(f"Exception: {e}")
-#                 # sys.exit(0) 
-#             else:
-#                 print('No SQSQUEUE found in template')       
-#         except KeyError:
-#             pass
-
 
 print(f"Length of Template: {len(json.dumps(template, indent=4))}")
 
