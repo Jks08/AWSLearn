@@ -18,10 +18,10 @@ try:
     SNSSubscriptionRequired = sys.argv[9]
     QueueType = sys.argv[10]
     # If QueueType is FIFO, then set QueueType to true else false
-    if QueueType == "FIFO":
-        QueueType = True
-    else:
-        QueueType = False
+    # if QueueType == "FIFO":
+    #     QueueType = True
+    # else:
+    #     QueueType = False
     VisibilityTimeout = sys.argv[11]
     MessageRetentionPeriod = sys.argv[12]
     MaximumMessageSize = sys.argv[13]
@@ -377,15 +377,15 @@ if resources_sns_subscription != None:
 
 print(json.dumps(template, indent=4))
 
-# try:
-#     update_stack = cloudformation.update_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#         )
-#     print(f"Updating the stack {Stackname}")
-# except botocore.exceptions.ClientError as e:
-#     create_stack = cloudformation.create_stack(
-#         StackName=Stackname,
-#         TemplateBody=json.dumps(template, indent=4),
-#         )
-#     print(f"Creating New Stack {Stackname}")
+try:
+    update_stack = cloudformation.update_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Updating the stack {Stackname}")
+except botocore.exceptions.ClientError as e:
+    create_stack = cloudformation.create_stack(
+        StackName=Stackname,
+        TemplateBody=json.dumps(template, indent=4),
+        )
+    print(f"Creating New Stack {Stackname}")
