@@ -242,7 +242,7 @@ else:
 
 if len(DeadLetterQueueName) != 0:
     resources_dead_letter_queue = {
-        f"SQSQUEUE{sqsQueueCount-1}": {
+        f"SQSQUEUEDL{sqsQueueCount-1}": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
                 "QueueName": DeadLetterQueueName
