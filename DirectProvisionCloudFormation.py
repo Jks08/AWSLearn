@@ -257,7 +257,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
     resources_source_queue = {
         f"SQSQUEUE{sqsQueueCount}": {
             "Type": "AWS::SQS::Queue",
-            "DependsOn": f"SQSQUEUE{sqsQueueCount-1}",
+            "DependsOn": f"SQSQUEUEDL{sqsQueueCount-1}",
             "Properties": {
                 "QueueName": QueueName,
                 # "FifoQueue": QueueType,
@@ -269,7 +269,7 @@ if QueueName != "" and len(DeadLetterQueueName) != 0:
                 "RedrivePolicy": {
                     "deadLetterTargetArn": {
                         "Fn::GetAtt": [
-                            f"SQSQUEUE{sqsQueueCount-1}",
+                            f"SQSQUEUEDL{sqsQueueCount-1}",
                             "Arn"
                         ]
                     },
