@@ -49,6 +49,10 @@ except botocore.exceptions.ClientError as e:
     print(e.response['Error']['Message'])
     pass
 
+# # The template cft is stored in prodSNS.json
+# with open('prodSNS.json') as f:
+#     template_cft = json.load(f)
+
 # Get the Resources section of the template
 try:
     template = dict(template_cft['TemplateBody'])
@@ -98,15 +102,15 @@ if Action == 'update':
 
                 # Now we print the template 
                 print(json.dumps(template, indent=4))
-                try:
-                    update_stack = cloudformation.update_stack(
-                        StackName=Stackname,
-                        TemplateBody=json.dumps(template, indent=4),
-                        )
-                    print(f"Updating the stack {Stackname}")
-                except botocore.exceptions.ClientError as e:
-                    print(f"Exception: {e}")
-                sys.exit(0) 
+                # try:
+                #     update_stack = cloudformation.update_stack(
+                #         StackName=Stackname,
+                #         TemplateBody=json.dumps(template, indent=4),
+                #         )
+                #     print(f"Updating the stack {Stackname}")
+                # except botocore.exceptions.ClientError as e:
+                #     print(f"Exception: {e}")
+                # sys.exit(0) 
             else:
                 print('No SQSQUEUE found in template')       
         except KeyError:
@@ -424,17 +428,17 @@ if resources_queue_policy != None:
 if resources_sns_subscription != None:
     template["Resources"].update(resources_sns_subscription)
 
-# print(json.dumps(template, indent=4))
+print(json.dumps(template, indent=4))
 
-try:
-    update_stack = cloudformation.update_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Updating the stack {Stackname}")
-except botocore.exceptions.ClientError as e:
-    create_stack = cloudformation.create_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Creating New Stack {Stackname}")
+# try:
+#     update_stack = cloudformation.update_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Updating the stack {Stackname}")
+# except botocore.exceptions.ClientError as e:
+#     create_stack = cloudformation.create_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Creating New Stack {Stackname}")
