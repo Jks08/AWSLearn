@@ -64,6 +64,21 @@ except Exception:
         "Resources": {}
     }
 
+sqsQueueCount = 0
+snsTopicCount = 0
+
+# Find the number following "SQSQUEUE" and "SNSTOPIC" uder Resources
+for resource in template['Resources']:
+    if "SQSQUEUE" in resource:
+        # Find the number following "SQSQUEUE"
+        sqsQueueCount = int(re.findall(r'\d+', resource)[0])
+    if "SNSTOPIC" in resource:
+        # Find the number following "SNSTOPIC"
+        snsTopicCount = int(re.findall(r'\d+', resource)[0])
+
+sqsQueueCount += 2
+snsTopicCount += 1
+
 print(f"Length of Template: {len(json.dumps(template, indent=4))}")
 
 if len(json.dumps(template, indent=4)) < 45000:
@@ -84,22 +99,6 @@ else:
         "Conditions": {},
         "Resources": {}
     }
-
-
-sqsQueueCount = 0
-snsTopicCount = 0
-
-# Find the number following "SQSQUEUE" and "SNSTOPIC" uder Resources
-for resource in template['Resources']:
-    if "SQSQUEUE" in resource:
-        # Find the number following "SQSQUEUE"
-        sqsQueueCount = int(re.findall(r'\d+', resource)[0])
-    if "SNSTOPIC" in resource:
-        # Find the number following "SNSTOPIC"
-        snsTopicCount = int(re.findall(r'\d+', resource)[0])
-
-sqsQueueCount += 2
-snsTopicCount += 1
 
 resources_source_queue = {}
 resources_dead_letter_queue = {}
@@ -377,15 +376,15 @@ if resources_sns_subscription != None:
 
 print(json.dumps(template, indent=4))
 
-try:
-    update_stack = cloudformation.update_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Updating the stack {Stackname}")
-except botocore.exceptions.ClientError as e:
-    create_stack = cloudformation.create_stack(
-        StackName=Stackname,
-        TemplateBody=json.dumps(template, indent=4),
-        )
-    print(f"Creating New Stack {Stackname}")
+# try:
+#     update_stack = cloudformation.update_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Updating the stack {Stackname}")
+# except botocore.exceptions.ClientError as e:
+#     create_stack = cloudformation.create_stack(
+#         StackName=Stackname,
+#         TemplateBody=json.dumps(template, indent=4),
+#         )
+#     print(f"Creating New Stack {Stackname}")
