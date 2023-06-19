@@ -8,25 +8,25 @@ for db in dbs['DBInstances']:
         print(f"{db['DBInstanceIdentifier']}")
     except:
         print("No DB Instances found")
-        pass
+        continue
     try:
-        print(f" Backup Retention Period: {db['BackupRetentionPeriod']}")
+        print(f" Backup Retention Perios: {db['BackupRetentionPeriod']}")
     except:
         print("No Backup Retention Period found")
-        pass
+        continue
     try:
         print(f" Latest Restorable Time: {db['LatestRestorableTime']} in UTC")
     except:
         print("No Latest Restorable Time found")
-        pass
+        continue
     try:
         print(f" Copy Tags to Snapshots: {db['CopyTagsToSnapshot']}")
     except:
         print("No Copy Tags to Snapshots found")
-        pass
+        continue
     try:
         print(f" Backup Window: {db['PreferredBackupWindow']} in IST")
     except:
         print("No Backup Window found")
-        pass
+        continue
     print("\n")
